@@ -1,0 +1,10 @@
+[[bin]]
+name = "rustils"
+path = "src/rustils.rs"
+
+[package]
+name = "rustils"
+version = "0.0.1"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }
