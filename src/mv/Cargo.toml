@@ -1,0 +1,10 @@
+[package]
+name = "mv"
+version = "0.0.1"
+
+[[bin]]
+name = "mv"
+path = "mv.rs"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }

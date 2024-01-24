@@ -1,0 +1,10 @@
+[package]
+name = "ls"
+version = "0.0.1"
+
+[[bin]]
+name = "ls"
+path = "ls.rs"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }
