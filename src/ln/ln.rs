@@ -3,7 +3,7 @@ use std::os::unix::fs as unix_fs;
 use std::path::Path;
 use std::process;
 
-fn create_link(target_path: &str, link_path: Option<&str>, is_symbolic: Option<bool>) {
+fn create_link(target_path: &str, link_path: Option<&str>, is_symbolic: Option<bool>) -> bool {
     let link = link_path.or(Path::new(target_path).file_name().and_then(|f| f.to_str())).unwrap();
     let (link_type, result) = match is_symbolic {
         Some(true) => ("symlink", unix_fs::symlink(target_path, link)),
@@ -14,9 +14,11 @@ fn create_link(target_path: &str, link_path: Option<&str>, is_symbolic: Option<b
         Ok(_) => println!("Created {}: {}", link_type, link),
         Err(e) => {
             eprintln!("Error creating {}: {}", link_type, e);
-            process::exit(1);
+            return false
         }
     }
+
+    return true
 }
 
 fn main() {
@@ -39,20 +41,20 @@ mod tests {
     use create_link;
 
     #[test]
-    fn test_hardlink() {
+    fn hardlink() {
         let _ = fs::File::create("a");
-        create_link("a", Some("b"), None);
+        create_link("a", Some("b"), Some(false));
 
         let _ = fs::remove_file("a");
         let _ = fs::remove_file("b");
     }
 
     #[test]
-    fn test_symlink() {
-        let _ = fs::File::create("a");
-        create_link("a", Some("b"), Some(true));
+    fn symlink() {
+        let _ = fs::File::create("c");
+        create_link("c", Some("d"), Some(true));
 
-        let _ = fs::remove_file("a");
-        let _ = fs::remove_file("b");
+        let _ = fs::remove_file("c");
+        let _ = fs::remove_file("d");
     }
 }
