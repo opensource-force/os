@@ -3,22 +3,47 @@
 use std::io;
 use std::fs;
 
+fn echo_file(file: &str) -> bool {
+    match fs::read_to_string(file) {
+        Ok(content) => println!("{}", content),
+        Err(e) => {
+            eprintln!("Cannot access '{}': {}", file, e);
+            return false
+        }
+    }
+
+    return true
+}
+
 fn main() {
     let opts = clop::get_opts();
-    let mut buffer = String::new();
     let stdin = io::stdin();
 
     if opts.scrap.len() == 0 {
         loop {
+            let mut buffer = String::new();
             let _ = stdin.read_line(&mut buffer);
+    
             println!("{}", buffer);
         }
     } else {
         for arg in &opts.scrap {
-            match fs::read_to_string(arg) {
-                Ok(content) => println!("{}", content),
-                Err(e) => println!("Error reading {}: {}", arg, e)
-            }
+            echo_file(arg);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_echo_file() {
+        let _ = fs::File::create("a");
+        let _ = fs::write("a", "Hello World!");
+
+        assert!(echo_file("a"));
+
+        let _ = fs::remove_file("a");
     }
 }
