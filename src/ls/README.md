@@ -1,7 +1,10 @@
 # ls
 
-List files in director(y|ies)
+List directory contents
 
 ```sh
 ls [OPTION]... [DIRECTORY]...
 ```
+
+## Options
+`-a`, `--all`  ..  show hidden files
