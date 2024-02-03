@@ -2,20 +2,19 @@
 
 use std::fs;
 
-fn make_dir(dir: &str, is_parent: Option<bool>) -> bool {
-    let result = match is_parent {
-        Some(true) => fs::create_dir_all(dir),
-        None | Some(false) => fs::create_dir(dir)
+fn make_dir(dst: &str, is_parent: bool) -> bool {
+    let res = if is_parent {
+        fs::create_dir_all(dst)
+    } else {
+        fs::create_dir(dst)
     };
     
-    match result {
-        Ok(_) => println!("Created directory: {}", dir),
-        Err(e) => {
-            eprintln!("Error creating directory {}: {}", dir, e);
-            return false
-        }
+    if let Err(e) = res {
+        eprintln!("Error creating directory '{}': {}", dst, e);
+        return false
     }
 
+    println!("Created directory '{}'", dst);
     return true
 }
 
@@ -24,25 +23,24 @@ fn main() {
     let is_parent = opts.has(&["p", "parents"], None);
 
     for arg in &opts.scrap {
-        make_dir(arg, Some(is_parent));
+        make_dir(arg, is_parent);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use fs;
-    use make_dir;
+    use super::*;
 
     #[test]
     fn test_make_dir() {
-        assert!(make_dir("a", None));
+        assert!(make_dir("a", false));
 
         let _ = fs::remove_dir("a");
     }
 
     #[test]
     fn test_make_dir_parent() {
-        assert!(make_dir("b/c", Some(true)));
+        assert!(make_dir("b/c", true));
 
         let _ = fs::remove_dir_all("b");
     }
