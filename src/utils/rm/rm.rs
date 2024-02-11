@@ -1,6 +1,7 @@
 // https://man.archlinux.org/man/rm.1.en
 
 use std::fs;
+use std::process;
 
 fn remove(file: &str, is_recursive: bool) -> bool {
     let (file_type, result) = if is_recursive {
@@ -29,10 +30,16 @@ fn remove(file: &str, is_recursive: bool) -> bool {
 
 fn main() {
     let mut opts = clop::get_opts();
+
+    if opts.scrap.len() < 1 {
+        eprintln!("Usage: rm [OPTION]... <TARGET>...");
+        process::exit(1);
+    }
+
     let is_recursive = opts.has(&["r", "recursive"], None);
 
     for arg in &opts.scrap {
-        remove(arg, Some(is_recursive));
+        remove(arg, is_recursive);
     }
 }
 
@@ -44,13 +51,13 @@ mod tests {
     fn test_remove_file() {
         let _ = fs::File::create("a");
 
-        assert!(remove("a", Some(false)));
+        assert!(remove("a", false));
     }
 
     #[test]
     fn test_remove_dir() {
         let _ = fs::create_dir("b");
         
-        assert!(remove("b", Some(true)));
+        assert!(remove("b", true));
     }
 }

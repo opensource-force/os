@@ -33,7 +33,7 @@ fn main() {
         2 => create_link(&opts.scrap[0], Some(&opts.scrap[1]), is_symbolic),
         1 => create_link(&opts.scrap[0], None, is_symbolic),
         _ => {
-            eprintln!("Incorrect number of arguments");
+            eprintln!("Usage: ln [OPTION]... <TARGET> <LINK_NAME>");
             process::exit(1);
         }
     };

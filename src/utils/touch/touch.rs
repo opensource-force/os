@@ -1,6 +1,7 @@
 // https://man.archlinux.org/man/touch.1.en
 
 use std::fs;
+use std::process;
 
 fn make_file(file: &str) -> bool {
     match fs::File::create(file) {
@@ -21,6 +22,11 @@ fn make_file(file: &str) -> bool {
 fn main() {
     let opts = clop::get_opts();
     
+    if opts.scrap.len() < 1 {
+        eprintln!("Usage: touch [OPTION]... <FILE>...");
+        process::exit(1);
+    }
+
     for arg in &opts.scrap {
         make_file(arg);
     }

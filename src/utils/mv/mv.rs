@@ -2,6 +2,7 @@
 
 use std::fs;
 use std::path::Path;
+use std::process;
 
 fn move_file(src: &str, dst: &str) -> bool {
     if let Err(e) = fs::metadata(src) {
@@ -28,6 +29,11 @@ fn move_file(src: &str, dst: &str) -> bool {
 
 fn main() {
     let opts = clop::get_opts();
+
+    if opts.scrap.len() < 2 {
+        eprintln!("Usage: mv [OPTION]... <TARGET>... <DESTINATION>");
+        process::exit(1);
+    }
 
     if let Some(dst) = opts.scrap.last() {
         for arg in &opts.scrap[..opts.scrap.len() - 1] {
