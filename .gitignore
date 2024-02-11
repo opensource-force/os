@@ -1,2 +1,2 @@
-src/*/target
-src/*/Cargo.lock
+src/utils/*/target
+src/utils/*/Cargo.lock
