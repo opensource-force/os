@@ -3,7 +3,7 @@
 Make directories
 
 ```sh
-mkdir [OPTION]... [DIRECTORY]...
+mkdir [OPTION]... <DIRECTORY>...
 ```
 
 ## Description

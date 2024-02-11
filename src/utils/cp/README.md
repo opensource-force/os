@@ -3,7 +3,7 @@
 Copy files and directories
 
 ```sh
-cp [OPTION]... <TARGET>... [DESTINATION]
+cp [OPTION]... <TARGET>... <DESTINATION>
 ```
 
 ## Description

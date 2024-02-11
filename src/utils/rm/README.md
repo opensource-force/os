@@ -3,7 +3,7 @@
 Remove files or directories
 
 ```sh
-rm [OPTION]... [TARGET]...
+rm [OPTION]... <TARGET>...
 ```
 
 ## Description
