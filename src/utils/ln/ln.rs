@@ -1,7 +1,6 @@
 use std::fs;
 use std::os::unix::fs as unix_fs;
 use std::path::Path;
-use std::process;
 
 fn create_link(src: &str, dst: Option<&str>, is_symbolic: bool) -> bool {
     if let Err(e) = fs::metadata(src) {
@@ -27,15 +26,12 @@ fn create_link(src: &str, dst: Option<&str>, is_symbolic: bool) -> bool {
 
 fn main() {
     let mut opts = clop::get_opts();
-    let is_symbolic = opts.has(&["s", "symbolic"], None);
+    let is_symbolic = opts.has(&["s", "symbolic"], false).is_ok();
 
     match opts.scrap.len() {
         2 => create_link(&opts.scrap[0], Some(&opts.scrap[1]), is_symbolic),
         1 => create_link(&opts.scrap[0], None, is_symbolic),
-        _ => {
-            eprintln!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]");
-            process::exit(1);
-        }
+        _ => panic!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]")
     };
 }
 

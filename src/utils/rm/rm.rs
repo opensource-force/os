@@ -1,7 +1,6 @@
 // https://man.archlinux.org/man/rm.1.en
 
 use std::fs;
-use std::process;
 
 fn remove(file: &str, is_recursive: bool) -> bool {
     let (file_type, result) = if is_recursive {
@@ -32,11 +31,10 @@ fn main() {
     let mut opts = clop::get_opts();
 
     if opts.scrap.len() < 1 {
-        eprintln!("Usage: rm [OPTION]... <TARGET>...");
-        process::exit(1);
+        panic!("Usage: rm [OPTION]... <TARGET>...");
     }
 
-    let is_recursive = opts.has(&["r", "recursive"], None);
+    let is_recursive = opts.has(&["r", "recursive"], false).is_ok();
 
     for arg in &opts.scrap {
         remove(arg, is_recursive);

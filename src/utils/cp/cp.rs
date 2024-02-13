@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::Path;
-use std::process;
 
 fn copy_file(src: &str, dst: &str, is_recursive: bool) -> bool {
     if let Err(e) = fs::metadata(src) {
@@ -44,11 +43,10 @@ fn main() {
     let mut opts = clop::get_opts();
 
     if opts.scrap.len() < 2 {
-        eprintln!("Usage: cp [OPTION]... <TARGET>... <DESTINATION>");
-        process::exit(1);
+        panic!("Usage: cp [OPTION]... <TARGET>... <DESTINATION>");
     }
 
-    let is_recursive = opts.has(&["r", "recursive"], None);
+    let is_recursive = opts.has(&["r", "recursive"], false).is_ok();
 
     if let Some(dst) = opts.scrap.last() {
         for arg in &opts.scrap[..opts.scrap.len() - 1] {

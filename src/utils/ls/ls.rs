@@ -26,7 +26,7 @@ fn list_dir(dst: &str, is_hidden: bool) -> bool {
 
 fn main() {
     let mut opts = clop::get_opts();
-    let is_hidden = opts.has(&["a", "all"], None);
+    let is_hidden = opts.has(&["a", "all"], false).is_ok();
 
     if opts.scrap.len() == 0 {
         opts.scrap.push("./".to_string());

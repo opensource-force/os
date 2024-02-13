@@ -1,7 +1,6 @@
 // https://man.archlinux.org/man/mkdir.1
 
 use std::fs;
-use std::process;
 
 fn make_dir(dst: &str, is_parent: bool) -> bool {
     let res = if is_parent {
@@ -23,14 +22,13 @@ fn main() {
     let mut opts = clop::get_opts();
     
     if opts.scrap.len() < 1 {
-        eprintln!("Usage: mkdir [OPTION]... <DIRECTORY>...");
-        process::exit(1);
+        panic!("Usage: mkdir [OPTION]... <DIRECTORY>...");
     }
 
-    let is_parent = opts.has(&["p", "parents"], None);
+    let has_parent = opts.has(&["p", "parents"], false).is_ok();
 
     for arg in &opts.scrap {
-        make_dir(arg, is_parent);
+        make_dir(arg, has_parent);
     }
 }
 
