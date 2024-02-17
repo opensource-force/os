@@ -1,35 +1,29 @@
 // https://man.archlinux.org/man/touch.1.en
 
+use std::error::Error;
 use std::fs;
-use std::process;
 
-fn make_file(file: &str) -> bool {
-    match fs::File::create(file) {
-        Ok(created) => {
-            println!("Created: {}", file);
+fn make_file(src: &str) -> Result<(), Box<dyn Error>> {
+    let file = fs::File::create(src)?;
+    let _ = file.set_len(0);
     
-            let _ = created.set_len(0);
-        },
-        Err(e) => {
-            eprintln!("Error creating {}: {}", file, e);
-            return false
-        }
-    }
-
-    return true
+    println!("Created '{}'", src);
+    
+    Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let opts = clop::get_opts();
     
     if opts.scrap.len() < 1 {
-        eprintln!("Usage: touch [OPTION]... <FILE>...");
-        process::exit(1);
+        panic!("Usage: touch [OPTION]... <FILE>...");
     }
 
     for arg in &opts.scrap {
-        make_file(arg);
+        make_file(arg)?;
     }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -38,7 +32,7 @@ mod tests {
 
     #[test]
     fn test_make_file() {
-        assert!(make_file("a"));
+        assert!(make_file("a").is_ok());
 
         let _ = fs::remove_file("a");
     }
@@ -47,7 +41,7 @@ mod tests {
     fn test_update_timestamp() {
         let _ = fs::File::create("b");
 
-        assert!(make_file("b"));
+        assert!(make_file("b").is_ok());
 
         let _ = fs::remove_file("b");
     }

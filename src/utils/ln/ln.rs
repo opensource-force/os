@@ -1,38 +1,33 @@
+// https://man.archlinux.org/man/ln.1
+
+use std::error::Error;
 use std::fs;
 use std::os::unix::fs as unix_fs;
-use std::path::Path;
 
-fn create_link(src: &str, dst: Option<&str>, is_symbolic: bool) -> bool {
-    if let Err(e) = fs::metadata(src) {
-        eprintln!("Cannot access '{}': {}", src, e);
-        return false
-    }
+fn create_link(src: &str, dst: &str, is_symbolic: bool) -> Result<(), Box<dyn Error>> {
+    fs::metadata(src)?;
 
-    let link = dst.or(Path::new(src).file_name().and_then(|f| f.to_str())).unwrap();
-    let (link_type, res) = if is_symbolic {
-        ("symlink", unix_fs::symlink(src, link))
+    if is_symbolic {
+        unix_fs::symlink(src, dst)?;
     } else {
-        ("hardlink", fs::hard_link(src, link))
-    };
-
-    if let Err(e) = res {
-        eprintln!("Error creating {} '{}': {}", link_type, link, e);
-        return false
+        fs::hard_link(src, dst)?;
     }
-
-    println!("Created {} '{}'", link_type, link);
-    return true
+    println!("Created link '{}' from '{}'", dst, src);
+    
+    Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut opts = clop::get_opts();
     let is_symbolic = opts.has(&["s", "symbolic"], false).is_ok();
 
-    match opts.scrap.len() {
-        2 => create_link(&opts.scrap[0], Some(&opts.scrap[1]), is_symbolic),
-        1 => create_link(&opts.scrap[0], None, is_symbolic),
-        _ => panic!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]")
-    };
+    if opts.scrap.len() != 2 {
+        panic!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]");
+    }
+
+    create_link(&opts.scrap[0], &opts.scrap[1], is_symbolic)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -43,7 +38,7 @@ mod tests {
     fn test_create_hardlink() {
         let _ = fs::File::create("a");
         
-        assert!(create_link("a", Some("b"), false));
+        assert!(create_link("a", "b", false).is_ok());
 
         let _ = fs::remove_file("a");
         let _ = fs::remove_file("b");
@@ -53,7 +48,7 @@ mod tests {
     fn test_create_symlink() {
         let _ = fs::File::create("c");
 
-        assert!(create_link("c", Some("d"), true));
+        assert!(create_link("c", "d", true).is_ok());
 
         let _ = fs::remove_file("c");
         let _ = fs::remove_file("d");

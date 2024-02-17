@@ -2,20 +2,15 @@
 
 use std::fs;
 
-fn make_dir(dst: &str, is_parent: bool) -> bool {
-    let res = if is_parent {
-        fs::create_dir_all(dst)
+fn make_dir(dst: &str, is_parent: bool) -> Result<(), Box<dyn Error>> {
+    if is_parent {
+        fs::create_dir_all(dst)?;
     } else {
-        fs::create_dir(dst)
-    };
-    
-    if let Err(e) = res {
-        eprintln!("Error creating directory '{}': {}", dst, e);
-        return false
+        fs::create_dir(dst)?;
     }
-
     println!("Created directory '{}'", dst);
-    return true
+    
+    Ok(())
 }
 
 fn main() {

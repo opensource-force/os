@@ -3,16 +3,20 @@
 use std::io;
 use std::fs;
 
-fn echo_file(file: &str) -> bool {
-    match fs::read_to_string(file) {
-        Ok(content) => println!("{}", content),
-        Err(e) => {
-            eprintln!("Cannot access '{}': {}", file, e);
-            return false
+fn cat(file: Option<&str>) -> io::Result<()> {
+    if file.is_none() {
+        loop {
+            let mut buffer = String::new();
+            let _ = stdin.read_line(&mut buffer);
+    
+            println!("{}", buffer);
         }
     }
 
-    return true
+    let content = fs::read_to_string(file)?;
+    println!("{}", content);
+
+    Ok(())
 }
 
 fn main() {
@@ -20,15 +24,10 @@ fn main() {
     let stdin = io::stdin();
 
     if opts.scrap.len() == 0 {
-        loop {
-            let mut buffer = String::new();
-            let _ = stdin.read_line(&mut buffer);
-    
-            println!("{}", buffer);
-        }
+
     } else {
         for arg in &opts.scrap {
-            echo_file(arg);
+            let _ = cat(arg);
         }
     }
 }
@@ -42,7 +41,7 @@ mod tests {
         let _ = fs::File::create("a");
         let _ = fs::write("a", "Hello World!");
 
-        assert!(echo_file("a"));
+        assert!(cat("a").is_ok());
 
         let _ = fs::remove_file("a");
     }

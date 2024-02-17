@@ -1,33 +1,26 @@
 // https://man.archlinux.org/man/rm.1.en
 
+use std::error::Error;
 use std::fs;
 
-fn remove(file: &str, is_recursive: bool) -> bool {
-    let (file_type, result) = if is_recursive {
-        match fs::metadata(file) {
-            Ok(meta) => {
-                if meta.is_dir() {
-                    ("directory", fs::remove_dir_all(file))
-                } else {
-                    ("file", fs::remove_file(file))
-                }
-            },
-            Err(_) => return false
+fn rm(src: &str, is_recursive: bool) -> Result<(), Box<dyn Error>> {
+    if is_recursive {
+        let meta = fs::metadata(src)?;
+
+        if meta.is_dir() {
+            fs::remove_dir_all(src)?;
+        } else {
+            fs::remove_file(src)?;
         }
     } else {
-        ("file", fs::remove_file(file))
-    };
-
-    if let Err(e) = result {
-        eprintln!("Error removing {}: {}", file_type, e);
-        return false
+        fs::remove_file(src)?;
     }
+    println!("Removed '{}'", src);
 
-    println!("Removed {}: {}", file_type, file);
-    return true
+    Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut opts = clop::get_opts();
 
     if opts.scrap.len() < 1 {
@@ -37,8 +30,10 @@ fn main() {
     let is_recursive = opts.has(&["r", "recursive"], false).is_ok();
 
     for arg in &opts.scrap {
-        remove(arg, is_recursive);
+        rm(arg, is_recursive)?;
     }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -49,13 +44,13 @@ mod tests {
     fn test_remove_file() {
         let _ = fs::File::create("a");
 
-        assert!(remove("a", false));
+        assert!(rm("a", false).is_ok());
     }
 
     #[test]
     fn test_remove_dir() {
         let _ = fs::create_dir("b");
         
-        assert!(remove("b", true));
+        assert!(rm("b", true).is_ok());
     }
 }
