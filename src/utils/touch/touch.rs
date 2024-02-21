@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::fs;
 
-fn make_file(src: &str) -> Result<(), Box<dyn Error>> {
+fn touch(src: &str) -> Result<(), Box<dyn Error>> {
     let file = fs::File::create(src)?;
     let _ = file.set_len(0);
     
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     for arg in &opts.scrap {
-        make_file(arg)?;
+        touch(arg)?;
     }
 
     Ok(())
@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn test_make_file() {
-        assert!(make_file("a").is_ok());
+        assert!(touch("a").is_ok());
 
         let _ = fs::remove_file("a");
     }
@@ -41,7 +41,7 @@ mod tests {
     fn test_update_timestamp() {
         let _ = fs::File::create("b");
 
-        assert!(make_file("b").is_ok());
+        assert!(touch("b").is_ok());
 
         let _ = fs::remove_file("b");
     }

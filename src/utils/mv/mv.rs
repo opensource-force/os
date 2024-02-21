@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-fn move_file(src: &str, dst: &str) -> Result<(), Box<dyn Error>> {
+fn mv(src: &str, dst: &str) -> Result<(), Box<dyn Error>> {
     fs::metadata(src)?;
 
     let src_path = Path::new(src);
@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dst = opts.scrap.last().unwrap();
 
     for arg in &opts.scrap[..opts.scrap.len() - 1] {
-        move_file(arg, dst)?;
+        mv(arg, dst)?;
     }
 
     Ok(())
@@ -44,7 +44,7 @@ mod tests {
     fn test_move_file() {
         let _ = fs::File::create("a");
 
-        assert!(move_file("a", "b").is_ok());
+        assert!(mv("a", "b").is_ok());
 
         let _ = fs::remove_file("b");
     }
@@ -53,7 +53,7 @@ mod tests {
     fn test_move_directory() {
         let _ = fs::create_dir("c");
 
-        assert!(move_file("c", "d").is_ok());
+        assert!(mv("c", "d").is_ok());
 
         let _ = fs::remove_dir("d");
     }
@@ -63,7 +63,7 @@ mod tests {
         let _ = fs::File::create("e");
         let _ = fs::create_dir("f");
 
-        assert!(move_file("e", "f").is_ok());
+        assert!(mv("e", "f").is_ok());
 
         let _ = fs::remove_dir_all("f");
     }

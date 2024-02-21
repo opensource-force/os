@@ -1,8 +1,9 @@
 // https://man.archlinux.org/man/mkdir.1
 
+use std::error::Error;
 use std::fs;
 
-fn make_dir(dst: &str, is_parent: bool) -> Result<(), Box<dyn Error>> {
+fn mkdir(dst: &str, is_parent: bool) -> Result<(), Box<dyn Error>> {
     if is_parent {
         fs::create_dir_all(dst)?;
     } else {
@@ -13,7 +14,7 @@ fn make_dir(dst: &str, is_parent: bool) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut opts = clop::get_opts();
     
     if opts.scrap.len() < 1 {
@@ -23,8 +24,10 @@ fn main() {
     let has_parent = opts.has(&["p", "parents"], false).is_ok();
 
     for arg in &opts.scrap {
-        make_dir(arg, has_parent);
+        mkdir(arg, has_parent)?;
     }
+    
+    Ok(())
 }
 
 #[cfg(test)]
@@ -33,14 +36,14 @@ mod tests {
 
     #[test]
     fn test_make_dir() {
-        assert!(make_dir("a", false));
+        assert!(mkdir("a", false).is_ok());
 
         let _ = fs::remove_dir("a");
     }
 
     #[test]
-    fn test_make_dir_parent() {
-        assert!(make_dir("b/c", true));
+    fn test_make_parent_dir() {
+        assert!(mkdir("b/c", true).is_ok());
 
         let _ = fs::remove_dir_all("b");
     }

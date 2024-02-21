@@ -1,19 +1,19 @@
 // https://man.archlinux.org/man/cat.1
 
-use std::io;
+use std::io::{self, stdin};
 use std::fs;
 
-fn cat(file: Option<&str>) -> io::Result<()> {
-    if file.is_none() {
+fn cat(src: Option<&str>) -> io::Result<()> {
+    if src.is_none() {
         loop {
-            let mut buffer = String::new();
-            let _ = stdin.read_line(&mut buffer);
+            let mut buf = String::new();
+            let _ = stdin().read_line(&mut buf);
     
-            println!("{}", buffer);
+            println!("{}", buf);
         }
     }
 
-    let content = fs::read_to_string(file)?;
+    let content = fs::read_to_string(src.unwrap())?;
     println!("{}", content);
 
     Ok(())
@@ -21,13 +21,12 @@ fn cat(file: Option<&str>) -> io::Result<()> {
 
 fn main() {
     let opts = clop::get_opts();
-    let stdin = io::stdin();
 
     if opts.scrap.len() == 0 {
-
+        let _ = cat(None);
     } else {
         for arg in &opts.scrap {
-            let _ = cat(arg);
+            let _ = cat(Some(arg));
         }
     }
 }
@@ -41,7 +40,7 @@ mod tests {
         let _ = fs::File::create("a");
         let _ = fs::write("a", "Hello World!");
 
-        assert!(cat("a").is_ok());
+        assert!(cat(Some("a")).is_ok());
 
         let _ = fs::remove_file("a");
     }

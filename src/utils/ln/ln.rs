@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fs;
 use std::os::unix::fs as unix_fs;
 
-fn create_link(src: &str, dst: &str, is_symbolic: bool) -> Result<(), Box<dyn Error>> {
+fn ln(src: &str, dst: &str, is_symbolic: bool) -> Result<(), Box<dyn Error>> {
     fs::metadata(src)?;
 
     if is_symbolic {
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         panic!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]");
     }
 
-    create_link(&opts.scrap[0], &opts.scrap[1], is_symbolic)?;
+    ln(&opts.scrap[0], &opts.scrap[1], is_symbolic)?;
 
     Ok(())
 }
@@ -38,7 +38,7 @@ mod tests {
     fn test_create_hardlink() {
         let _ = fs::File::create("a");
         
-        assert!(create_link("a", "b", false).is_ok());
+        assert!(ln("a", "b", false).is_ok());
 
         let _ = fs::remove_file("a");
         let _ = fs::remove_file("b");
@@ -48,7 +48,7 @@ mod tests {
     fn test_create_symlink() {
         let _ = fs::File::create("c");
 
-        assert!(create_link("c", "d", true).is_ok());
+        assert!(ln("c", "d", true).is_ok());
 
         let _ = fs::remove_file("c");
         let _ = fs::remove_file("d");
