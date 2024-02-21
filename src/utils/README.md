@@ -1,12 +1,5 @@
 <div align="center">
-<h1>Rustils :hammer_and_wrench:</h1>
-<p>Linux coreutils implemented in Rust. The purpose of this project is to develop a minimal, performant and consistent set of utilites for Linux systems</p>
-<a href='#'><img src="https://img.shields.io/badge/Made%20with-Rust-&?style=flat-square&labelColor=232329&color=f74c00&logo=rust"/></a>
-<a href='#'><img src="https://img.shields.io/badge/Maintained%3F-Yes-green.svg?style=flat-square&labelColor=232329&color=5277C3"></img></a>
-<br/>
-
-<a href="https://discord.gg/W4mQqNnfSq">
-<img src="https://discordapp.com/api/guilds/913584348937207839/widget.png?style=shield"/></a>
+<h1>coreutils :hammer_and_wrench:</h1>
 </div>
 
 ## Implemented
