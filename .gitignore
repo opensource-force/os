@@ -1,2 +1,5 @@
 src/utils/*/target
+src/shell/target
+
 src/utils/*/Cargo.lock
+src/shell/Cargo.lock
