@@ -1,0 +1,15 @@
+[package]
+name = "chgrp"
+version = "0.0.1"
+edition = "2021"
+
+[[bin]]
+name = "chgrp"
+path = "chgrp.rs"
+
+[lib]
+name = "lib"
+path = "../lib.rs"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }
