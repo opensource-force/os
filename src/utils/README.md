@@ -6,11 +6,11 @@
 <details open markdown="1"><summary><h3>File System</h3></summary>
   
 - [ ] `chcon` - change file security context
-- [ ] `chgrp` - change file group ownership
-- [ ] `chown` - change file ownership
-- [ ] `chmod` - change file/directory permissions
+- [x] `chgrp` - change file group ownership
+- [x] `chown` - change file ownership
+- [x] `chmod` - change file/directory permissions
 - [x] `cp` - copy file(s)/director[y|ies]
-- [ ] `dd` - copy & convert file
+- [x] `dd` - copy & convert file
 - [ ] `df` - show free disk space  
 - [ ] ~~`dir` - list files in director[y|(ies)] (`ls -Cb` equivalent)~~
 - [ ] ~~`dircolors` - set up color for `ls`~~
@@ -21,7 +21,7 @@
 - [x] `mv` - move file(s)/director[y|ies]
 - [ ] `realpath` - returns the resolved absolute or relative path for a file
 - [x] `rm` - remove file(s)
-- [ ] `rmdir` - remove empty director[y|ies]
+- [x] `rmdir` - remove empty director[y|ies]
 - [ ] `shred` - hide(/delete) file content
 - [ ] `sync` - flush file system buffer
 - [x] `touch` - make file(s)
@@ -45,7 +45,7 @@
 - [ ] `expand` - convert tabs to spaces
 - [ ] `fmt` - format text
 - [ ] `fold` - wrap input lines to fit in specified width
-- [ ] `head` - output first lines of file(s)
+- [x] `head` - output first lines of file(s)
 - [ ] `join` - join lines of two files on common fields
 - [ ] `md5sum` - compute and check MD5 message digset
 - [ ] `nl` - number lines of files
