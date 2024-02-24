@@ -1,0 +1,15 @@
+[package]
+name = "chown"
+version = "0.0.1"
+edition = "2021"
+
+[[bin]]
+name = "chown"
+path = "chown.rs"
+
+[lib]
+name = "lib"
+path = "../lib.rs"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }
