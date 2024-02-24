@@ -1,0 +1,11 @@
+[package]
+name = "chmod"
+version = "0.0.1"
+edition = "2021"
+
+[[bin]]
+name = "chmod"
+path = "chmod.rs"
+
+[dependencies]
+clop = { git = "https://github.com/wick3dr0se/clop" }
