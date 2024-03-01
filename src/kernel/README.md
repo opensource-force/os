@@ -2,6 +2,19 @@
 <h1>microkernel</h1>
 </div>
 
+## Compiling
+Set compiler to nightly in current dir
+`rustup override set nightly`
+
+Build binary from target
+`cargo build --target x86_64-unknown-uefi -Z build-std=core -Z build-std-features=compiler-builtins-mem`
+
+Create disk image
+`cargo run --package disk_image -- ../target/x86_64-unknown-uefi/debug/kernel.efi`
+
+Boot with QEMU
+`qemu-system-x86_64 -drive format=raw,file=../target/x86_64-unknown-uefi/debug/kernel.gdt -bios OVMF_CODE-pure-efi.fd`
+
 ## Specification
 - [WASI](https://github.com/WebAssembly/WASI) - ABI
 

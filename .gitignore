@@ -1,5 +1,7 @@
+src/kernel/target
 src/utils/*/target
 src/shell/target
 
+src/kernel/Cargo.lock
 src/utils/*/Cargo.lock
 src/shell/Cargo.lock
