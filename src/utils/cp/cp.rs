@@ -5,23 +5,28 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-fn copy_file(src_path: Cow<Path>, dst_path: Cow<Path>) -> Result<(), Box<dyn Error>> {
-    fs::copy(&src_path, &dst_path)?;
+fn copy_file(src_path: impl AsRef<Path>, dst_path: impl AsRef<Path>) -> Result<(), Box<dyn Error>> {
+    let src_path = src_path.as_ref();
+    let dst_path = dst_path.as_ref();
+
+    fs::copy(src_path, dst_path)?;
     println!("Copied '{}' to '{}'", src_path.display(), dst_path.display());
+
     Ok(())
 }
 
-fn copy_directory(src_path: Cow<Path>, dst_path: Cow<Path>, is_recursive: bool) -> Result<(), Box<dyn Error>> {
+fn copy_directory(src_path: impl AsRef<Path>, dst_path: impl AsRef<Path>, is_recursive: bool) -> Result<(), Box<dyn Error>> {
+    let src_path = src_path.as_ref();
+    let dst_path = dst_path.as_ref();
+
     fs::create_dir_all(&dst_path)?;
 
     for entry in fs::read_dir(&src_path)? {
-        let entry_path = Cow::from(
-            entry?.path()
-        );
+        let entry_path = entry?.path();
 
         let new_dst = match entry_path.file_name() {
             Some(file_name) => Cow::from(dst_path.join(file_name)),
-            None => dst_path.clone(),  // this should never happen
+            None => Cow::from(dst_path),  // this should never happen
         };
 
         if entry_path.is_file() {
@@ -38,7 +43,7 @@ fn copy_directory(src_path: Cow<Path>, dst_path: Cow<Path>, is_recursive: bool) 
 }
 
 fn cp(src: &str, dst: &str, is_recursive: bool) -> Result<(), Box<dyn Error>> {
-    let src_path = Cow::from(Path::new(src));
+    let src_path = Path::new(src);
     let mut dst_path = Cow::from(Path::new(dst));
 
     // ToDo: Handle cases when passing invalid paths and add some errors on '// invalid path'.
@@ -50,11 +55,10 @@ fn cp(src: &str, dst: &str, is_recursive: bool) -> Result<(), Box<dyn Error>> {
     // so I am leaving it for @wick3dr0se to decide and implement
 
     if dst_path.is_dir() {
-        dst_path.to_mut().push(&src_path);
+        dst_path.to_mut().push(src_path);
     }
 
     if src_path.is_dir() {
-        dst_path.to_mut().push(&src_path);
         copy_directory(src_path, dst_path, is_recursive)
     } else if src_path.is_file() {
         copy_file(src_path, dst_path)
