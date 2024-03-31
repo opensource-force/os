@@ -1,77 +1,105 @@
+#[derive(Debug, Clone)] 
 pub enum TkType {
     Pipe,
     InputRedirect,
     OutputRedirect,
+    OutputRedirectAppend,
+    StringLiteral,
+    StringExpansion,
     Lexeme,
     EOF
 }
 
+#[derive(Debug, Clone)] 
 pub struct Tk {
     pub tk_type: TkType,
     pub lexeme: String
 }
 
 impl Tk {
-    pub fn new(tk_type: TkType, lexeme: Option<String>) -> Self {
-        Self {
-            tk_type,
-            lexeme: lexeme.unwrap_or_default()
-        }
+    fn new(tk_type: TkType, lexeme: Option<String>) -> Self {
+        Self { tk_type, lexeme: lexeme.unwrap_or_default() }
     }
+
+    pub fn get(&self) -> &str { self.lexeme.as_str() }
 }
 
+#[derive(Debug, Clone)] 
 pub struct TkBuf {
-    pub tks: Vec<Tk>,
-    pub pos: usize
+    tks: Vec<Tk>,
+    pos: usize,
 }
 
 impl TkBuf {
-    pub fn new() -> Self {
-        Self {
-            tks: vec![],
-            pos: 0
-        }
-    }
+    fn new() -> Self { Self { tks: vec![], pos: 0 } }
 
-    pub fn push(&mut self, tk: Tk) {
-        self.tks.push(tk);
-    }
 
-    pub fn next(&mut self) -> Option<&Tk> {
+    fn push(&mut self, tk: Tk) { self.tks.push(tk); }
+
+    pub fn peek(&mut self) -> Option<&Tk> {
         if self.pos < self.tks.len() {
-            let c = &self.tks[self.pos];
+            return Some(&self.tks[self.pos])
+        }
+
+        None
+    }
+
+    pub fn next(&mut self) -> Option<Tk> {
+        if self.pos < self.tks.len() {
+            let tk = self.tks[self.pos].clone();
             self.pos += 1;
-            Some(c)
-        } else {
-            None
+
+            return Some(tk)
+        }
+
+        None
+    }
+
+    pub fn get(&self) -> Vec<String> {
+        self.tks.iter().map(|tk| tk.lexeme.clone()).collect()
+    }
+
+    pub fn last(&self) -> Option<String> {
+        self.tks.last().map(|tk| tk.lexeme.clone())
+    }
+
+    pub fn repl_matches(&mut self, any: &str, repl: &str) {
+        for tk in &mut self.tks {
+            tk.lexeme = tk.lexeme.replace(any, repl);
         }
     }
 }
 
+#[derive(Debug, Clone)] 
 pub struct SrcBuf {
     pub input: Vec<char>,
-    pub pos: usize,
+    pos: usize,
 }
 
 impl SrcBuf {
-    pub fn new() -> Self {
-        Self {
-            input: vec![],
-            pos: 0
+    fn new() -> Self { Self { input: vec![], pos: 0 } }
+
+    fn peek(&self) -> Option<char> {
+        if self.pos < self.input.len() {
+            return Some(self.input[self.pos])
         }
+
+        None
     }
 
-    pub fn next(&mut self) -> Option<char> {
+    fn next(&mut self) -> Option<char> {
         if self.pos < self.input.len() {
             let c = self.input[self.pos];
             self.pos += 1;
-            Some(c)
-        } else {
-            None
+
+            return Some(c)
         }
+        
+        None
     }
 }
 
+#[derive(Debug, Clone)] 
 pub struct Lexer {
     pub src: SrcBuf,
     pub tokens: TkBuf
@@ -79,10 +107,7 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn new() -> Self {
-        Self {
-            src: SrcBuf::new(),
-            tokens: TkBuf::new()
-        }
+        Self { src: SrcBuf::new(), tokens: TkBuf::new() }
     }
 
     pub fn lex(&mut self) {
@@ -91,14 +116,36 @@ impl Lexer {
                 ' ' | '\n' => continue,
                 '|' => self.tokens.push(Tk::new(TkType::Pipe, None)),
                 '<' => self.tokens.push(Tk::new(TkType::InputRedirect, None)),
-                '>' => self.tokens.push(Tk::new(TkType::OutputRedirect, None)),
-                'a'..='z' | 'A'..='Z' => {
+                '>' => {
+                    if let Some(c) = self.src.peek() {
+                        match c {
+                            '>' => {
+                                self.tokens.push(Tk::new(TkType::OutputRedirectAppend, None));
+                                self.src.next();
+                            }
+                            _ => self.tokens.push(Tk::new(TkType::OutputRedirect, None))
+                        }
+                    }
+                }
+                '\'' => {
+                    let mut string_literal = String::new();
+                    string_literal.push(c);
+
+                    while let Some(c) = self.src.next() {
+                        string_literal.push(c);
+
+                        if c == '\'' { break; }
+                    }
+
+                    self.tokens.push(Tk::new(TkType::StringLiteral, Some(string_literal)));
+                }
+                'a'..='z' | 'A'..='Z' | '/' | '.' | '~' | '\\' => {
                     let mut lexeme = String::new();
                     lexeme.push(c);
 
-                    while let Some(l) = self.src.next() {
-                        match l {
-                            'a'..='z' | 'A'..='Z' | '0'..='9' => lexeme.push(l),
+                    while let Some(c) = self.src.next() {
+                        match c {
+                            'a'..='z' | 'A'..='Z' | '0'..='9' | '/' | '.' => lexeme.push(c),
                             _ => break
                         }
                     }
@@ -108,6 +155,6 @@ impl Lexer {
             }
         }
 
-        self.tokens.push(Tk::new(TkType::EOF, None));
+        //self.tokens.push(Tk::new(TkType::EOF, None));
     }
 }
