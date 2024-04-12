@@ -3,26 +3,19 @@
 #![no_std]
 #![no_main]
 
-use core::panic::PanicInfo;
-use core::fmt::Write;
-
-use uefi::prelude::entry;
-
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! { loop {} }
-
-#[no_mangle]
-pub extern "C" fn _start() -> ! { loop {} }
-
+use log::info;
+use uefi::prelude::*;
 
 #[entry]
 fn efi_main(
-    image: uefi::Handle,
-    mut system_table: uefi::table::SystemTable<uefi::table::Boot>,
-) -> uefi::Status {
-    let stdout = system_table.stdout();
-    
-    writeln!(stdout, "Hello World!").unwrap();
+    _image_handle: Handle,
+    mut system_table: SystemTable<Boot>
+) -> Status {
+    uefi_services::init(&mut system_table).unwrap();
 
-    loop {}
+    info!("Hello World!");
+
+    system_table.boot_services().stall(10_000_000);
+
+    Status::SUCCESS
 }
