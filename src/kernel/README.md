@@ -3,21 +3,11 @@
 </div>
 
 ## Build & Execution
-Compile, create disk image & load into Qemu
+Build kernel, create disk image & load into Qemu
 
-`./qemu.sh`/`bash qemu.sh` or execute the commands within said script individually
+`./qemu.sh`/`bash qemu.sh` or execute the commands within the script individually
 
 ## Resources
-### x86_64
-1. [uefi-rs](https://rust-osdev.github.io/uefi-rs/HEAD/): up-to-date ref; handles & protocols, drivers, GUID/tables, etc
-2. [Phil-OS](https://github.com/phil-opp/blog_os/blob/edition-3/blog/content/edition-3/posts/02-booting/uefi/index.md): UEFI, target, disk image, elf binary, qemu, etc
-3. [Phil-OS](https://os.phil-opp.com): BIOS, bootloader, paging, allocator, etc
-
-### RSIC-V
-- [RISC-V OS](https://osblog.stephenmarz.com) - allocation, interrupts, system calls, etc
-
----
-
 ### WASI/WASM
 - [wasmtime](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md): tutorial
 - [Mozilla](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_wasm): tutorial
