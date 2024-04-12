@@ -1,39 +1,43 @@
 // https://man.archlinux.org/man/mv.1.en
 
-use std::error::Error;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    error::Error
+};
 
-fn mv(src: &str, dst: &str) -> Result<(), Box<dyn Error>> {
-    fs::metadata(src)?;
+use clap::Parser;
 
-    let src_path = Path::new(src);
-    let mut dst_path = PathBuf::from(dst);
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true, num_args(1..))]
+    sources: Vec<String>,
+    #[clap(required = true)]
+    dest: String
+}
 
-    if dst_path.is_dir() {
-        dst_path.push(src)
+fn mv(args: Args) -> Result<(), Box<dyn Error>> {
+    for src in &args.sources {
+        fs::metadata(src)?;
+
+        let src_path = Path::new(src);
+        let mut dst_path = PathBuf::from(&args.dest);
+
+        if dst_path.is_dir() {
+            dst_path.push(src)
+        }
+        
+        fs::rename(&src_path, &dst_path)?;
+        println!("Moved '{}' to '{}'", src, dst_path.to_string_lossy());
     }
-    
-    fs::rename(src_path, &dst_path)?;
-    println!("Moved '{}' to '{}'", src, dst_path.to_string_lossy());
 
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opts = clop::get_opts();
+fn main() {
+    let args = Args::parse();
 
-    if opts.scrap.len() < 2 {
-        panic!("Usage: mv [OPTION]... <TARGET>... <DESTINATION>");
-    }
-
-    let dst = opts.scrap.last().unwrap();
-
-    for arg in &opts.scrap[..opts.scrap.len() - 1] {
-        mv(arg, dst)?;
-    }
-
-    Ok(())
+    mv(args).unwrap();
 }
 
 #[cfg(test)]
@@ -43,8 +47,12 @@ mod tests {
     #[test]
     fn test_move_file() {
         let _ = fs::File::create("a");
+        let args = Args {
+            sources: vec!["a".to_string()],
+            dest: "b".to_string()
+        };
 
-        assert!(mv("a", "b").is_ok());
+        assert!(mv(args).is_ok());
 
         let _ = fs::remove_file("b");
     }
@@ -52,8 +60,12 @@ mod tests {
     #[test]
     fn test_move_directory() {
         let _ = fs::create_dir("c");
+        let args = Args {
+            sources: vec!["c".to_string()],
+            dest: "d".to_string()
+        };
 
-        assert!(mv("c", "d").is_ok());
+        assert!(mv(args).is_ok());
 
         let _ = fs::remove_dir("d");
     }
@@ -62,8 +74,12 @@ mod tests {
     fn test_move_to_destination() {
         let _ = fs::File::create("e");
         let _ = fs::create_dir("f");
+        let args = Args {
+            sources: vec!["e".to_string()],
+            dest: "f".to_string()
+        };
 
-        assert!(mv("e", "f").is_ok());
+        assert!(mv(args).is_ok());
 
         let _ = fs::remove_dir_all("f");
     }

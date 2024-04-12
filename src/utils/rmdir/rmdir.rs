@@ -1,28 +1,30 @@
 //https://man.archlinux.org/man/rmdir.1
 // -p | remove parent directories
 
-use std::error::Error;
-use std::fs;
+use std::{ fs, error::Error };
 
-fn rmdir(src: &str) -> Result<(), Box<dyn Error>> {
-    fs::remove_dir(src)?;
-    println!("Removed directory '{}'", src);
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true, num_args(1..))]
+    dirs: Vec<String>
+}
+
+fn rmdir(args: Args) -> Result<(), Box<dyn Error>> {
+    for dir in &args.dirs {
+        fs::remove_dir(dir)?;
+        
+        println!("Removed directory '{}'", dir);
+    }
 
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opts = clop::get_opts();
-
-    if opts.scrap.len() < 1 {
-        panic!("Usage: rmdir [OPTION]... <DIRECTORY>...");
-    }
-
-    for arg in &opts.scrap {
-        rmdir(arg)?;
-    }
-
-    Ok(())
+fn main() {
+    let args = Args::parse();
+    
+    rmdir(args).unwrap();
 }
 
 #[cfg(test)]
@@ -32,7 +34,10 @@ mod tests {
     #[test]
     fn test_remove_dir() {
         let _ = fs::create_dir("a");
+        let args = Args {
+            dirs: vec!["a".to_string()]
+        };
 
-        assert!(rmdir("a").is_ok());
+        assert!(rmdir(args).is_ok());
     }
 }

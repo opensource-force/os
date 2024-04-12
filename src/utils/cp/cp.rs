@@ -1,64 +1,68 @@
 // https://man.archlinux.org/man/cp.1
 
-mod io;
+use std::{
+    borrow::Cow,
+    path::Path,
+    error::Error
+};
 
-use std::borrow::Cow;
-use std::error::Error;
-use std::fs;
-use std::path::Path;
+use lib::files::{copy_file, copy_directory};
 
-fn cp(src: &str, dst: &str, is_recursive: bool) -> Result<(), Box<dyn Error>> {
-    let src_path = Path::new(src);
-    let mut dst_path = Cow::from(Path::new(dst));
+use clap::Parser;
 
-    // ToDo: Handle cases when passing invalid paths and add some errors on '// invalid path'.
-    // For example:
-    // - src = "/directory"
-    // - dst = "file.txt"
-    //
-    // I am not sure what behavior is desired in such cases,
-    // so I am leaving it for @wick3dr0se to decide and implement
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true, num_args(1..))]
+    sources: Vec<String>,
+    #[clap(required = true)]
+    dest: String,
 
-    if dst_path.is_dir() {
-        dst_path.to_mut().push(src_path);
-    }
-
-    if src_path.is_dir() {
-        io::copy_directory(src_path, dst_path, is_recursive)
-    } else if src_path.is_file() {
-        io::copy_file(src_path, dst_path)
-    } else {
-        // invalid path - src_path doesn't exist
-        Ok(())
-    }
+    #[clap(short, long)]
+    recursive: bool
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut opts = clop::get_opts();
+fn cp(args: Args) -> Result<(), Box<dyn Error>> {
+    for src in &args.sources {
+        let src_path = Path::new(src);
+        let mut dst_path = Cow::from(Path::new(&args.dest));
 
-    if opts.scrap.len() < 2 {
-        panic!("Usage: cp [OPTION]... <TARGET>... <DESTINATION>");
-    }
+        if dst_path.is_dir() {
+            dst_path.to_mut().push(src_path);
+        }
 
-    let is_recursive = opts.has(&["r", "recursive"], false).is_ok();
-    let dst = opts.scrap.last().unwrap();
-    
-    for arg in &opts.scrap[..opts.scrap.len() - 1] {
-        cp(arg, dst, is_recursive)?;
+        if src_path.is_dir() {
+            copy_directory(src_path, dst_path, args.recursive)?
+        } else if src_path.is_file() {
+            copy_file(src_path, dst_path)?
+        }
+
+        println!("Copied '{}' to '{}'", src, &args.dest);
     }
 
     Ok(())
 }
 
+fn main() {
+    let args = Args::parse();
+
+    cp(args).unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn test_copy_file() {
         let _ = fs::File::create("a");
+        let args = Args {
+            sources: vec!["a".to_string()],
+            dest: "b".to_string(),
+            recursive: false
+        };
         
-        assert!(cp("a", "b", false).is_ok());
+        assert!(cp(args).is_ok());
         
         let _ = fs::remove_file("a");
         let _ = fs::remove_file("b");
@@ -67,8 +71,13 @@ mod tests {
     #[test]
     fn test_copy_directory() {
         let _ = fs::create_dir("c");
+        let args = Args {
+            sources: vec!["c".to_string()],
+            dest: "d".to_string(),
+            recursive: true
+        };
 
-        assert!(cp("c", "d", true).is_ok());
+        assert!(cp(args).is_ok());
         
         let _ = fs::remove_dir("c");
         let _ = fs::remove_dir("d");
@@ -78,8 +87,13 @@ mod tests {
     fn test_copy_to_destination() {
         let _ = fs::File::create("e");
         let _ = fs::create_dir("f");
+        let args = Args {
+            sources: vec!["e".to_string()],
+            dest: "f".to_string(),
+            recursive: false
+        };
         
-        assert!(cp("e", "f", false).is_ok());
+        assert!(cp(args).is_ok());
         
         let _ = fs::remove_file("e");
         let _ = fs::remove_dir_all("f");

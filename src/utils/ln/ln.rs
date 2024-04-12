@@ -1,33 +1,41 @@
 // https://man.archlinux.org/man/ln.1
 
-use std::error::Error;
-use std::fs;
-use std::os::unix::fs as unix_fs;
+use std::{
+    fs,
+    os::unix::fs as unix_fs,
+    error::Error
+};
 
-fn ln(src: &str, dst: &str, is_symbolic: bool) -> Result<(), Box<dyn Error>> {
-    fs::metadata(src)?;
+use clap::Parser;
 
-    if is_symbolic {
-        unix_fs::symlink(src, dst)?;
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true)]
+    source: String,
+    #[clap(required = true)]
+    dest: String,
+
+    #[clap(short, long)]
+    symbolic: bool
+}
+
+fn ln(args: Args) -> Result<(), Box<dyn Error>> {
+    fs::metadata(&args.source)?;
+
+    if args.symbolic {
+        unix_fs::symlink(&args.source, &args.dest)?;
     } else {
-        fs::hard_link(src, dst)?;
+        fs::hard_link(&args.source, &args.dest)?;
     }
-    println!("Created link '{}' from '{}'", dst, src);
+    println!("Created link '{}' from '{}'", &args.dest, &args.source);
     
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut opts = clop::get_opts();
-    let is_symbolic = opts.has(&["s", "symbolic"], false).is_ok();
+fn main() {
+    let args = Args::parse();
 
-    if opts.scrap.len() != 2 {
-        panic!("Usage: ln [OPTION]... <TARGET> [LINK_NAME]");
-    }
-
-    ln(&opts.scrap[0], &opts.scrap[1], is_symbolic)?;
-
-    Ok(())
+    ln(args).unwrap();
 }
 
 #[cfg(test)]
@@ -37,8 +45,13 @@ mod tests {
     #[test]
     fn test_create_hardlink() {
         let _ = fs::File::create("a");
-        
-        assert!(ln("a", "b", false).is_ok());
+        let args = Args {
+            source: "a".to_string(),
+            dest: "b".to_string(),
+            symbolic: false
+        };
+
+        assert!(ln(args).is_ok());
 
         let _ = fs::remove_file("a");
         let _ = fs::remove_file("b");
@@ -47,8 +60,13 @@ mod tests {
     #[test]
     fn test_create_symlink() {
         let _ = fs::File::create("c");
+        let args = Args {
+            source: "c".to_string(),
+            dest: "d".to_string(),
+            symbolic: true
+        };
 
-        assert!(ln("c", "d", true).is_ok());
+        assert!(ln(args).is_ok());
 
         let _ = fs::remove_file("c");
         let _ = fs::remove_file("d");

@@ -1,11 +1,20 @@
 // https://man.archlinux.org/man/head.1.en
 
-use std::io;
-use std::io::BufRead;
-use std::fs;
+use std::{ fs, io, io::BufRead };
 
-fn head(src: Option<&str>, lines: Option<u32>) -> io::Result<()> {
-    if src.is_none() {
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[clap(num_args(1..))]
+    files: Vec<String>,
+
+    #[clap(short, long, default_value = "10")]
+    lines: u8
+}
+
+fn head(args: Args) -> io::Result<()> {
+    if args.files.is_empty() {
         let stdin = io::stdin();
 
         loop {
@@ -15,38 +24,31 @@ fn head(src: Option<&str>, lines: Option<u32>) -> io::Result<()> {
             println!("{}", buf);
         }
     }
-
-    let file = fs::File::open(src.unwrap())?;
-    let reader = io::BufReader::new(file);
-    let line_count = lines.unwrap_or(0);
-    let mut lines_read = 0;
-
     
-    for line in reader.lines() {
-        if line_count != 0 && lines_read >= line_count {
-            break;
-        }
+    for file in &args.files {
+        let file = fs::File::open(file);
+        let reader = io::BufReader::new(file?);
+        let line_count = args.lines;
+        let mut lines_read = 0;
 
-        let content = line?;
-        println!("{}", content);
-        lines_read += 1;
+        for line in reader.lines() {
+            if line_count != 0 && lines_read >= line_count {
+                break;
+            }
+    
+            let content = line?;
+            println!("{}", content);
+            lines_read += 1;
+        }
     }
 
     Ok(())
 }
 
 fn main() {
-    let mut opts = clop::get_opts();
-    let some_lines = opts.has(&["n", "lines"], true).ok().and_then(|a| a.parse().ok());
+    let args = Args::parse();
 
-    if opts.scrap.is_empty() {
-        let _ = head(None, None);
-        return
-    }
-
-    for arg in &opts.scrap {
-        let _ = head(Some(arg), some_lines);
-    }
+    head(args).unwrap();
 }
 
 #[cfg(test)]
@@ -57,8 +59,12 @@ mod tests {
     fn test_echo_file_start() {
         let _ = fs::File::create("a");
         let _ = fs::write("a", "Hello\nWorld!");
+        let args = Args {
+            files: vec!["a".to_string()],
+            lines: 1
+        };
 
-        assert!(head(Some("a"), Some(1)).is_ok());
+        assert!(head(args).is_ok());
 
         let _ = fs::remove_file("a");
     }

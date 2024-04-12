@@ -1,10 +1,17 @@
 // https://man.archlinux.org/man/cat.1
 
-use std::io::{self, stdin};
-use std::fs;
+use std::{ fs, io::{self, stdin} };
 
-fn cat(src: Option<&str>) -> io::Result<()> {
-    if src.is_none() {
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[clap(num_args(1..))]
+    files: Vec<String>
+}
+
+fn cat(args: Args) -> io::Result<()> {
+    if args.files.is_empty() {
         loop {
             let mut buf = String::new();
             let _ = stdin().read_line(&mut buf);
@@ -13,22 +20,18 @@ fn cat(src: Option<&str>) -> io::Result<()> {
         }
     }
 
-    let content = fs::read_to_string(src.unwrap())?;
-    println!("{}", content);
+    for file in args.files {
+        let content = fs::read_to_string(file)?;
+        println!("{}", content);
+    }
 
     Ok(())
 }
 
 fn main() {
-    let opts = clop::get_opts();
+    let args = Args::parse();
 
-    if opts.scrap.len() == 0 {
-        let _ = cat(None);
-    } else {
-        for arg in &opts.scrap {
-            let _ = cat(Some(arg));
-        }
-    }
+    cat(args).unwrap();
 }
 
 #[cfg(test)]
@@ -39,8 +42,11 @@ mod tests {
     fn test_echo_file() {
         let _ = fs::File::create("a");
         let _ = fs::write("a", "Hello World!");
+        let args = Args {
+            files: vec!["a".to_string()]
+        };
 
-        assert!(cat(Some("a")).is_ok());
+        assert!(cat(args).is_ok());
 
         let _ = fs::remove_file("a");
     }

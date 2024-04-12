@@ -1,29 +1,30 @@
 // https://man.archlinux.org/man/touch.1.en
 
-use std::error::Error;
-use std::fs;
+use std::{ fs, error::Error };
 
-fn touch(src: &str) -> Result<(), Box<dyn Error>> {
-    let file = fs::File::create(src)?;
-    let _ = file.set_len(0);
-    
-    println!("Created '{}'", src);
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true, num_args(1..))]
+    files: Vec<String>
+}
+
+fn touch(args: Args) -> Result<(), Box<dyn Error>> {
+    for file in &args.files {
+        let new_file = fs::File::create(file)?;
+        new_file.set_len(0)?;
+        
+        println!("Created '{}'", file);
+    }
     
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opts = clop::get_opts();
-    
-    if opts.scrap.len() < 1 {
-        panic!("Usage: touch [OPTION]... <FILE>...");
-    }
+fn main() {
+    let args = Args::parse();
 
-    for arg in &opts.scrap {
-        touch(arg)?;
-    }
-
-    Ok(())
+    touch(args).unwrap();
 }
 
 #[cfg(test)]
@@ -32,7 +33,11 @@ mod tests {
 
     #[test]
     fn test_make_file() {
-        assert!(touch("a").is_ok());
+        let args = Args {
+            files: vec!["a".to_string()]
+        };
+
+        assert!(touch(args).is_ok());
 
         let _ = fs::remove_file("a");
     }
@@ -40,8 +45,11 @@ mod tests {
     #[test]
     fn test_update_timestamp() {
         let _ = fs::File::create("b");
+        let args = Args {
+            files: vec!["b".to_string()]
+        };
 
-        assert!(touch("b").is_ok());
+        assert!(touch(args).is_ok());
 
         let _ = fs::remove_file("b");
     }

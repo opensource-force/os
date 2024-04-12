@@ -1,30 +1,35 @@
 // https://man.archlinux.org/man/chmod.1
 
-use std::error::Error;
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
+use std::{
+    fs,
+    os::unix::fs::PermissionsExt,
+    error::Error,
+};
 
-fn chmod(src: &str, mode: u32) -> Result<(), Box<dyn Error>> {
-    fs::set_permissions(src, fs::Permissions::from_mode(mode))?;
-    println!("Mode '{}' set on '{}'", mode, src);
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true)]
+    mode: u32,
+    #[clap(required = true, num_args(1..))]
+    sources: Vec<String>
+}
+
+fn chmod(args: Args) -> Result<(), Box<dyn Error>> {
+    for src in &args.sources {
+        fs::set_permissions(src, fs::Permissions::from_mode(args.mode))?;
+    
+        println!("Mode '{}' set on '{}'", &args.mode, src);
+    }
 
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opts = clop::get_opts();
-
-    if opts.scrap.len() < 2 {
-        panic!("Usage: chmod [OPTION]... <MODE> <TARGET>...");
-    }
-
-    let mode = opts.scrap[0].parse()?;
-
-    for arg in &opts.scrap[1..] {
-        chmod(arg, mode)?;
-    }
-
-    Ok(())
+fn main() {
+    let args = Args::parse();
+    
+    chmod(args).unwrap();
 }
 
 #[cfg(test)]
@@ -34,8 +39,12 @@ mod tests {
     #[test]
     fn test_change_file_mode() {
         let _ = fs::File::create("a");
+        let args = Args {
+            mode: 755,
+            sources: vec!["a".to_string()]
+        };
 
-        assert!(chmod("a", 755).is_ok());
+        assert!(chmod(args).is_ok());
 
         let _ = fs::remove_file("a");
     }
@@ -43,8 +52,12 @@ mod tests {
     #[test]
     fn test_change_dir_mode() {
         let _ = fs::create_dir("b");
+        let args = Args {
+            mode: 644,
+            sources: vec!["b".to_string()]
+        };
 
-        assert!(chmod("b", 644).is_ok());
+        assert!(chmod(args).is_ok());
 
         let _ = fs::remove_dir("b");
     }

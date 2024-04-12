@@ -8,4 +8,4 @@ name = "ls"
 path = "ls.rs"
 
 [dependencies]
-clop = { git = "https://github.com/wick3dr0se/clop" }
+clap = { version = "4.5.4", features = ["derive"] }

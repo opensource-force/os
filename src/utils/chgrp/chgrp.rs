@@ -1,31 +1,38 @@
 // https://man.archlinux.org/man/chgrp.1.en
 
-use std::error::Error;
-use std::os::unix::fs as unix_fs;
+use std::{
+    os::unix::fs as unix_fs,
+    error::Error
+};
 
 use lib::files::group_to_gid;
 
-fn chgrp(src: &str, grp: &str) -> Result<(), Box<dyn Error>> {
-    let gid = group_to_gid(grp)?;
+use clap::Parser;
 
-    unix_fs::chown(src, None, Some(gid))?;
-    println!("Group '{}' set on '{}'", grp, src);
+#[derive(Parser)]
+struct Args {
+    #[clap(required = true)]
+    group: String,
+
+    #[clap(num_args(1..))]
+    sources: Vec<String>
+}
+
+fn chgrp(args: Args) -> Result<(), Box<dyn Error>> {
+    for src in &args.sources {
+        let gid = group_to_gid(&args.group)?;
+
+        unix_fs::chown(src, None, Some(gid))?;
+        println!("Group '{}' set on '{}'", &args.group, src);
+    }
 
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let opts = clop::get_opts();
-    
-    if opts.scrap.len() < 2 {
-        panic!("Usage: chgrp [OPTION]... <GROUP> <TARGET>...");
-    }
+fn main() {
+    let args = Args::parse();
 
-    for arg in &opts.scrap[1..] {
-        chgrp(arg, &opts.scrap[0])?;
-    }
-
-    Ok(())
+    chgrp(args).unwrap();
 }
 
 #[cfg(test)]
@@ -37,9 +44,12 @@ mod tests {
     #[test]
     fn test_change_file_group_ownership() {
         let _ = fs::File::create("a");
-        let user = env::var("USER").unwrap();
+        let args = Args {
+            group: env::var("USER").unwrap(),
+            sources: vec!["a".to_string()]
+        };
 
-        assert!(chgrp("a", &user).is_ok());
+        assert!(chgrp(args).is_ok());
 
         let _ = fs::remove_file("a");
     }
@@ -47,9 +57,12 @@ mod tests {
     #[test]
     fn test_change_dir_group_ownership() {
         let _ = fs::create_dir("b");
-        let user = env::var("USER").unwrap();
+        let args = Args {
+            group: env::var("USER").unwrap(),
+            sources: vec!["b".to_string()]
+        };
 
-        assert!(chgrp("b", &user).is_ok());
+        assert!(chgrp(args).is_ok());
 
         let _ = fs::remove_dir("b");
     }
