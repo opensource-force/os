@@ -6,7 +6,7 @@ buildDir='target/x86_64-unknown-uefi/debug'
 
 cargo build \
     --target x86_64-unknown-uefi \
-    -Z build-std=core \
+    -Z build-std=core,alloc \
     -Z build-std-features=compiler-builtins-mem
 
 cargo run \
