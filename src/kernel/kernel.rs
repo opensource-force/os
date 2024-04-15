@@ -10,7 +10,8 @@ use alloc::vec::Vec;
 
 use uefi::{
     prelude::*,
-    table::cfg
+    table::{ cfg, boot::{ OpenProtocolParams, OpenProtocolAttributes } },
+    proto::console::gop::GraphicsOutput
 };
 use uefi_services::{ init, println };
 
@@ -19,7 +20,6 @@ fn efi_main(
     _image_handle: Handle,
     mut sys_table: SystemTable<Boot>
 ) -> Status {
-    // initialize boot services
     init(&mut sys_table).unwrap();
 
     // test uefi allocator
@@ -48,6 +48,28 @@ fn efi_main(
         .map(|entry| entry.address);
 
     println!("RSDP addr: {:?}", rsdp_addr);
+
+    let boot_services = sys_table.boot_services();
+    let gop_handle = boot_services.get_handle_for_protocol::<GraphicsOutput>()
+        .expect("Failed acquiring GOP handle");
+    
+    // opening exclusely closes stdout
+    // let mut gop = boot_services.open_protocol_exclusive::<GraphicsOutput>(handle).unwrap();
+    let mut gop = unsafe {
+        let gop_proto = boot_services.open_protocol::<GraphicsOutput>(
+            OpenProtocolParams {
+                handle: gop_handle,
+                agent: boot_services.image_handle(),
+                controller: None
+            }, OpenProtocolAttributes::GetProtocol )
+            .expect("Failed opening GOP");
+
+        gop_proto
+    };
+    let gop_mode = gop.current_mode_info();
+    let gop_frame_buf = gop.frame_buffer();
+
+    println!("GOP: {:?} {:?}", gop_frame_buf, gop_mode);
 
     // pause 10s
     //sys_table.boot_services().stall(10_000_000);
