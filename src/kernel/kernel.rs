@@ -26,6 +26,15 @@ fn efi_main(
     
     println!("alloc test: {:?}", v);
 
+    let firmware_vendor = sys_table.firmware_vendor();
+    let firmware_rev = sys_table.firmware_revision();
+    let uefi_rev_major = sys_table.uefi_revision().major();
+    let uefi_rev_minor = sys_table.uefi_revision().minor();
+
+    println!("firmware vendor: {}", firmware_vendor);
+    println!("firmware revision: {}", firmware_rev);
+    println!("UEFI revision: {}.{}", uefi_rev_major, uefi_rev_minor);
+
     // pause 10s
     //sys_table.boot_services().stall(10_000_000);
     //Status::SUCCESS
