@@ -104,9 +104,11 @@ Cons
 - Susceptible to fragmentation
 
 ## Build & Execution
-Build kernel, create disk image & load into Qemu
+Build kernel & create disk image
 
-`./qemu.sh`/`bash qemu.sh` or execute the commands within the script individually
+`./build.sh`/`bash build.sh` or execute the commands within the script individually
+
+Pass --debug and/or --qemu for debugging/booting with QEMU
 
 ## Resources
 ### WASI/WASM
