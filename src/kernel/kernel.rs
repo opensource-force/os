@@ -7,7 +7,6 @@ extern crate alloc;
 
 use alloc::alloc::Layout;
 use alloc::vec::Vec;
-use log::info;
 
 use uefi::prelude::*;
 use uefi_services::{ init, println };
@@ -17,17 +16,21 @@ fn efi_main(
     _image_handle: Handle,
     mut sys_table: SystemTable<Boot>
 ) -> Status {
+    // initialize boot services
     init(&mut sys_table).unwrap();
 
+    // test uefi allocator
     let mut v = Vec::new();
     v.push("Hello");
     v.push("World");
     
-    println!("alloc test = {:?}", v);
+    println!("alloc test: {:?}", v);
 
-    sys_table.boot_services().stall(10_000_000);
+    // pause 10s
+    //sys_table.boot_services().stall(10_000_000);
+    //Status::SUCCESS
 
-    Status::SUCCESS
+    loop {}
 }
 
 #[alloc_error_handler]
