@@ -5,12 +5,18 @@
 
 extern crate alloc;
 
+use core::{ mem, slice };
 use alloc::alloc::Layout;
 use alloc::vec::Vec;
 
 use uefi::{
     prelude::*,
-    table::{ cfg, boot::{ OpenProtocolParams, OpenProtocolAttributes } },
+    table::{ cfg, boot::{
+        OpenProtocolParams,
+        OpenProtocolAttributes,
+        MemoryDescriptor,
+        MemoryType
+    } },
     proto::console::gop::GraphicsOutput
 };
 use uefi_services::{ init, println };
@@ -45,11 +51,12 @@ fn efi_main(
     let mut config_entries = sys_table.config_table().iter();
     let rsdp_addr = config_entries
         .find(|entry| matches!(entry.guid, cfg::ACPI_GUID | cfg::ACPI2_GUID))
-        .map(|entry| entry.address);
+        .map(|entry| entry.address).unwrap();
 
     println!("RSDP addr: {:?}", rsdp_addr);
 
-    let boot_services = sys_table.boot_services();
+    let boot_services = &sys_table.boot_services();
+    /*
     let gop_handle = boot_services.get_handle_for_protocol::<GraphicsOutput>()
         .expect("Failed acquiring GOP handle");
     
@@ -69,7 +76,18 @@ fn efi_main(
     let gop_mode = gop.current_mode_info();
     let gop_frame_buf = gop.frame_buffer();
 
-    println!("GOP: {:?} {:?}", gop_frame_buf, gop_mode);
+    println!("GOP: {:?} {:?}", gop_mode, gop_frame_buf);
+    */
+    
+    let max_mmap_size = boot_services.memory_map_size().map_size
+        + 8 * mem::size_of::<MemoryDescriptor>();
+    let ptr = boot_services
+        .allocate_pool(MemoryType::LOADER_DATA, max_mmap_size).unwrap();
+        
+    let _ = unsafe { slice::from_raw_parts_mut(ptr, max_mmap_size) };
+    
+    //RUNTIME_SERVICES_DATA
+    let (_sys_table, _mmap) = sys_table.exit_boot_services(MemoryType::LOADER_DATA);
 
     // pause 10s
     //sys_table.boot_services().stall(10_000_000);
